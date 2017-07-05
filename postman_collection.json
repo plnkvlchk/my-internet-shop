@@ -1,0 +1,381 @@
+{
+	"variables": [],
+	"info": {
+		"name": "My collection",
+		"_postman_id": "cb5feca8-dc58-2065-74ae-fef43a51fce2",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "catalog actions",
+			"description": "",
+			"item": [
+				{
+					"name": "add a user to a product",
+					"request": {
+						"url": "localhost:8080/products/{{productId}}/users/{{userId}}",
+						"method": "POST",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "add a product to a user",
+					"request": {
+						"url": "localhost:8080/users/{{userId1}}/products/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"productsIds\": [\"1\", \"2\"]\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "get user's products",
+					"request": {
+						"url": "localhost:8080/users/{{userId}}/products/",
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "get product's users",
+					"request": {
+						"url": "localhost:8080/products/{{productId}}/users/",
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "delete row from user's side",
+					"request": {
+						"url": "localhost:8080/users/{{userId}}/products/{{productId}}",
+						"method": "DELETE",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "delete row from product's side",
+					"request": {
+						"url": "localhost:8080/products/{{productId}}/users/{{userId}}/",
+						"method": "DELETE",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "products actions",
+			"description": "",
+			"item": [
+				{
+					"name": "add new product",
+					"request": {
+						"url": "localhost:8080/products/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"prod1\",\n\t\"price\": \"price1\"\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "add new product 1",
+					"request": {
+						"url": "localhost:8080/products/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"prod1\",\n\t\"price\": \"price1\",\n\t\"id\": {{productId1}}\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "add new product 2",
+					"request": {
+						"url": "localhost:8080/products/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"prod2\",\n\t\"price\": \"price2\",\n\t\"id\": {{productId2}}\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "add new product 3",
+					"request": {
+						"url": "localhost:8080/products/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"prod3\",\n\t\"price\": \"price3\",\n\t\"id\": {{productId3}}\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "add new product with id",
+					"request": {
+						"url": "localhost:8080/products/{{productId1}}",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"productName\": \"prod1\",\n\t\"productPrice\": \"price1\"\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "get all products",
+					"request": {
+						"url": "localhost:8080/products/",
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "get product by productId",
+					"request": {
+						"url": "localhost:8080/products/{{productId}}",
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "delete product by productId",
+					"request": {
+						"url": "localhost:8080/products/{{productId}}",
+						"method": "DELETE",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "delete all products",
+					"request": {
+						"url": "localhost:8080/products/",
+						"method": "DELETE",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "update product by productId",
+					"request": {
+						"url": "localhost:8080/products/{{productId}}",
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"newName\",\n\t\"price\": \"newPrice\",\n\t\"id\": \"newId\"\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "users actions",
+			"description": "",
+			"item": [
+				{
+					"name": "add user 1",
+					"request": {
+						"url": "localhost:8080/users/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"user1\",\n\t\"login\": \"login1\", \n\t\"id\": \"{{userId1}}\"\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "add user  2",
+					"request": {
+						"url": "localhost:8080/users/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"user2\",\n\t\"login\": \"login2\",\n\t\"id\": \"{{userId2}}\"\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "get all users",
+					"request": {
+						"url": "localhost:8080/users/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"property\": \"name\",\n\t\"value\": \"milk\",\n\t\"userName\": \"user2\",\n\t\"productName\": \"prod2\",\n\t\"productPrice\": \"price2\"\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "get user by userId",
+					"request": {
+						"url": "localhost:8080/users/{{userId}}",
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "delete user by userId",
+					"request": {
+						"url": "localhost:8080/users/{{userId}}",
+						"method": "DELETE",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "delete all users",
+					"request": {
+						"url": "localhost:8080/users/",
+						"method": "DELETE",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "update user by userId",
+					"request": {
+						"url": "localhost:8080/users/{{userId}}",
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"newName\",\n\t\"login\": \"newLogin\",\n\t\"id\": \"newId\"\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
