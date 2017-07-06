@@ -5,6 +5,7 @@ import * as del from './delete'
 import * as put from './put'
 
 const router = new express.Router();
+//TODO: move routes parts into separate constants
 
 router.get('/:productId', get.getProductById);
 router.get('', get.getAll);
