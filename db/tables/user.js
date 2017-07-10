@@ -1,4 +1,4 @@
-import User from '../models/user.js'
+import User from '../models/user.js' //TODO: eslint unused import
 
 var users = [];
 
@@ -8,11 +8,11 @@ export function getUsers() {
 
 export function addUser(user) {
     users.push(user)
-    return user
+    return user //TODO: you should return only new added elements
 }
 
 export function getUserById(userId) {
-    return users.filter(item => item.id === userId)[0]
+    return users.filter(item => item.id === userId)[0]//TODO: lodash find
 }
 
 export function deleteUserById(userId) {
@@ -20,22 +20,32 @@ export function deleteUserById(userId) {
 }
 
 export function deleteAllUsers() {
-    users = []
+    users = [] //TODO: memory leak could apper with such behaviour
+
     return users
 }
 
 export function updateUserById(userId, newUsersProperties) {
     Object.keys(newUsersProperties).forEach(item =>
-        users[users.indexOf(getUserById(userId))][item] = newUsersProperties[item])
+        users[users.indexOf(getUserById(userId))][item] = newUsersProperties[item]) //TODO: lodash values
+    //TODO: eslint statement is hard to understand with such formatting
+    //TODO: why we need to calculate index of the same user the same times as properties into newUsersProperties???
+
+
+//TODO: empty lines
+
+
     return getUserById(userId)
 }
 
+//TODO: empty lines
 
 
 
 
 
-
+//TODO: eslint
+//TODO: large parts of commented code are disallowed
 
 // export function addUser(name, login, id) {
 //

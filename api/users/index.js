@@ -6,6 +6,8 @@ import * as put from './put'
 
 const router = new express.Router();
 
+//TODO: move routes parts into separate constants
+
 router.get('/:userId', get.getUserById);
 router.get('', get.getAll);
 router.get('/:userId/products/', get.getUserProducts)
@@ -21,6 +23,6 @@ router.delete('/:userId/products/', del.deleteUsersRelations)
 router.put('/:userId', put.updateUserById)
 
 
-
+//TODO: redundant newlines
 
 export default router
