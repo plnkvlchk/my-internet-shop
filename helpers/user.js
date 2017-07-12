@@ -1,21 +1,13 @@
-// checks if input object is suitable for adding/updating the table
+import _ from 'lodash'
+
 export function isUserMatchesUniqueConstraint(users, user) {
-    return !users.some(item => (user.id === item.id) || (user.login === item.login))
+    return !_.some(users, (item) => (user.id === item.id) || (user.login === item.login))
 }
 
 export function isUserLoginUnique(users, userLogin) {
-    return !users.some(item => userLogin === item.login)
+    return !_.some(users, ['login', userLogin])
 }
 
-// checks if user already exists by id
 export function isUserExists(users, userId) {
-    return users.some(item => userId.toString() === item.id)
-}
-
-export function isUsersEmpty(users) {
-    return users.length === 0
-}
-
-export function isUserObjectContainsRequiredProperties(user) {
-    return Object.keys(user).some(item => item === 'login')
+    return _.some(users, ['id', userId.toString()])
 }

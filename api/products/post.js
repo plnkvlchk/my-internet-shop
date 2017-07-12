@@ -2,43 +2,71 @@ import * as product from '../../db/tables/product.js'
 import * as catalog from '../../db/tables/catalog.js'
 import * as helpers from '../../helpers/product.js'
 import Product from '../../db/models/product.js'
-import getResponse from '../../helpers/response'
-import {isUserExists} from '../../helpers/user'
+import * as responseHelpers from '../../helpers/response'
+import { types } from '../constants'
+import { operations } from '../constants'
+import { errors } from '../constants'
+import * as userHelpers from '../../helpers/user'
 import {getUsers} from '../../db/tables/user.js'
-import * as catalogHelpers from '../../helpers/catalog'
+import _ from 'lodash'
 
 export function addProduct(req, res) {
-    const newProduct = new Product(req.body)
-    const products = product.getProducts()
-    if(!helpers.isProductExists(products, newProduct.id)) {
-        return res.status(200).json({response: getResponse(true), result: product.addProduct(newProduct)})
-    } else {
-        return res.status(400).json({response: getResponse(false, "add",
-            "Input 'ID' is not unique", "product")})
+    let status = 400
+    let result
+
+    let newProduct
+    try {
+        newProduct = new Product(req.body)
+    } catch(err) {
+        result = responseHelpers.getFailureResponse(operations.POST, err.message, errors.REQUIRED)
+        return res.status(status).json(result)
     }
+
+    const products = product.getProducts()
+
+    if(!helpers.isProductExists(products, newProduct.id)) {
+        result = responseHelpers.getSuccessResponse(operations.POST, product.addProduct(newProduct), types.PRODUCT)
+        status = 200
+    } else {
+        result = responseHelpers.getFailureResponse(operations.POST, types.ID, errors.NOT_UNIQUE,
+            {"id": newProduct.id})
+    }
+
+    return res.status(status).json(result)
 }
 
-export function addProductUsers(req, res) {
+export function addProductsUsers(req, res) {
+    let status = 400
+    let result
 
     if (!helpers.isProductExists(product.getProducts(), req.params.productId)) {
-        return res.status(400).json({response: getResponse(false, "add relation to the",
-            "Element does not exist", "product", req.params.productId)})
+        result = responseHelpers.getFailureResponse(operations.POST_RELATION, types.PRODUCT, errors.NOT_EXISTS,
+            {"id": req.params.productId})
+        return res.status(status).json(result)
     }
 
-    if (!req.body.usersIds.some((item) => isUserExists(getUsers(), item))) {
-        return res.status(400).json({response: getResponse(false, "add relation to the ",
-            "Element does not exist", "user", req.body.usersIds.filter((item) =>
-                !isUserExists(getUsers(), item)))})
+    if(!req.body.usersIds || _.isEmpty(req.body.usersIds)) {
+        result = responseHelpers.getFailureResponse(operations.POST_RELATION, types.USERS_IDS, errors.REQUIRED)
+        return res.status(status).json(result)
     }
 
-    if (req.body.usersIds.some((item) => catalogHelpers.isRelationExists(catalog.getCatalog(), item,
-            req.params.productId))) {
-        return res.status(400).json({response: getResponse(false, "add relation to the",
-            "Element with id " + req.params.productId + " already has this relation", "product",
-            req.body.usersIds.filter((item) => catalogHelpers.isRelationExists(catalog.getCatalog(),
-                item, req.params.productId)))})
+    let usersAbsent = req.body.usersIds.filter((item) => !(userHelpers.isUserExists(getUsers(), item)))
+    if(!_.isEmpty(usersAbsent)) {
+        result = responseHelpers.getFailureResponse(operations.POST_RELATION, types.USERS, errors.NOT_EXISTS,
+            {"ids": usersAbsent})
+        return res.status(status).json(result)
     }
 
-    return res.status(200).json({response: getResponse(true),
-        result: catalog.addProductUsers(req.params.productId, req.body.usersIds)})
+    let relationsExisting = catalog.getCatalog().filter((item) => !(item.userId in req.body.usersIds))
+    if(!_.isEmpty(relationsExisting)) {
+        result = responseHelpers.getFailureResponse(operations.POST_RELATION, types.RELATION, errors.EXISTS,
+            relationsExisting)
+        return res.status(status).json(result)
+    }
+
+    status = 200
+    result = responseHelpers.getSuccessResponse(operations.POST_RELATION,
+        catalog.addProductsUsers(req.params.productId, req.body.usersIds), types.RELATIONS)
+
+    return res.status(status).json(result)
 }

@@ -1,8 +1,5 @@
+import _ from 'lodash'
+
 export function isRelationExists(catalog, userId, productId) {
-    return catalog.some(item => userId.toString() === item.userId && productId.toString() === item.productId)
+    return _.some(catalog, { 'userId': userId, 'productId': productId })
 }
-
-
-
-
-

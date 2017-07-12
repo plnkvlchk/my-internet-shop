@@ -3,25 +3,22 @@ import * as get from './get'
 import * as post from './post'
 import * as del from './delete'
 import * as put from './put'
+import { routes } from '../constants'
 
-const router = new express.Router();
+const router = new express.Router()
 
-router.get('/:productId', get.getProductById);
-router.get('', get.getAll);
-router.get('/:productId/users/', get.getProductUsers)
+router.get(routes.PRODUCTS.ID, get.getProductById)
+router.get(routes.PRODUCTS.EMPTY, get.getAll)
+router.get(routes.PRODUCTS.ADD_USER, get.getProductsUsers)
 
-router.post('/', post.addProduct)
-router.post('/:productId/users/', post.addProductUsers)
+router.post(routes.PRODUCTS.EMPTY, post.addProduct)
+router.post(routes.PRODUCTS.ADD_USER, post.addProductsUsers)
 
-router.delete('/:productId', del.deleteProductById)
-router.delete('', del.deleteAllProducts)
-router.delete('/:productId/users/:userId', del.deleteRelationByIds)
-router.delete('/:productId/users/', del.deleteProductsRelations)
+router.delete(routes.PRODUCTS.ID, del.deleteProductById)
+router.delete(routes.PRODUCTS.EMPTY, del.deleteAllProducts)
+router.delete(routes.PRODUCTS.ADD_USER_ID, del.deleteRelationByIds)
+router.delete(routes.PRODUCTS.ADD_USER, del.deleteProductsRelations)
 
-router.put('/:productId', put.updateProductById)
-
+router.put(routes.PRODUCTS.ID, put.updateProductById)
 
 export default router
-
-
-

@@ -1,9 +1,9 @@
-import Product from '../models/product.js'
+import _ from 'lodash'
 
-var products = [];
+const products = []
 
 export function getProducts() {
-    return products;
+    return products
 }
 
 export function addProduct(product) {
@@ -12,7 +12,7 @@ export function addProduct(product) {
 }
 
 export function getProductById(productId) {
-    return products.filter(item => item.id === productId)[0]
+    return _.find(products, ['id', productId])
 }
 
 export function deleteProductById(productId) {
@@ -20,14 +20,11 @@ export function deleteProductById(productId) {
 }
 
 export function deleteAllProducts() {
-    products = []
-    return products
+    return products.splice(0, products.length)
 }
 
-export function updateProductById(productId, newProductsProperties) {
-    Object.keys(newProductsProperties).forEach(item => products[products.indexOf(getProductById(productId))][item]
-        = newProductsProperties[item])
+export function updateProductById(productId, newProperties) {
+    const indexOfProductToUpdate = products.indexOf(getProductById(productId))
+    _.keys(newProperties).forEach(item => products[indexOfProductToUpdate][item] = newProperties[item])
     return getProductById(productId)
 }
-
-

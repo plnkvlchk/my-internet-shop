@@ -2,54 +2,81 @@ import * as user from '../../db/tables/user.js'
 import User from '../../db/models/user.js'
 import * as catalog from '../../db/tables/catalog'
 import * as helpers from '../../helpers/user.js'
-import * as catalogHelpers from '../../helpers/catalog'
-import * as product from '../../helpers/product'
+import * as productHelpers from '../../helpers/product'
 import {getProducts} from '../../db/tables/product.js'
-import getResponse from '../../helpers/response'
-
+import * as responseHelpers from '../../helpers/response'
+import { types } from '../constants'
+import { operations } from '../constants'
+import { errors } from '../constants'
+import _ from 'lodash'
 
 export function addUser(req, res) {
-    if (!helpers.isUserObjectContainsRequiredProperties(req.body)) {
-        return res.status(400).json({response: getResponse(false, "add",
-            "Input object must contain 'LOGIN' property", "user")})
-    }
-    const newUser = new User(req.body)
-    const users = user.getUsers()
-    if (helpers.isUserMatchesUniqueConstraint(users, newUser)) {
-        return res.status(200).json({response: getResponse(true), result: user.addUser(newUser)})
-    } else {
-        //return res.status(400).json({response: getResponse(false, "add", "Input 'ID' or 'LOGIN' is not unique", "user")})
+    let result
+    let status = 400
 
+    // if (!helpers.isUserObjectContainsRequiredProperties(req.body)) {
+    //     result = responseHelpers.getFailureResponse(operations.POST, types.LOGIN, errors.REQUIRED)
+    //     return res.status(status).json(result)
+    // }
+
+    let newUser
+    try {
+        newUser = new User(req.body)
+    } catch(err) {
+        result = responseHelpers.getFailureResponse(operations.POST, err.message, errors.REQUIRED)
+        return res.status(status).json(result)
+    }
+
+    const users = user.getUsers()
+
+    if (helpers.isUserMatchesUniqueConstraint(users, newUser)) {
+        result = responseHelpers.getSuccessResponse(operations.POST, user.addUser(newUser), types.USER)
+        status = 200
+    } else {
         if (!helpers.isUserLoginUnique(users, newUser.login)) {
-            return res.status(400).json({response: getResponse(false, "add", "Input 'LOGIN' is not unique")})
+            result = responseHelpers.getFailureResponse(operations.POST, types.LOGIN, errors.NOT_UNIQUE,
+                { "login": req.body.login })
         } else {
-            return res.status(400).json({response: getResponse(false, "add", "Input 'ID' is not unique", "user")})
+            result = responseHelpers.getFailureResponse(operations.POST, types.ID, errors.NOT_UNIQUE,
+                { "id": req.body.id })
         }
     }
+
+    return res.status(status).json(result)
 }
 
-export function addUserProducts(req, res) {
+export function addUsersProducts(req, res) {
+    let result
+    let status = 400
+
     if (!helpers.isUserExists(user.getUsers(), req.params.userId)) {
-        return res.status(400).json({response: getResponse(false, "add relation to the",
-            "Element does not exist", "user", req.params.userId)})
+        result = responseHelpers.getFailureResponse(operations.POST_RELATION, types.USER, errors.NOT_EXISTS,
+            { "id": req.params.userId })
+        return res.status(status).json(result)
     }
-    if (!req.body.productsIds.some((item) => product.isProductExists(getProducts(), item))) {
-        return res.status(400).json({response: getResponse(false, "add relation to the ",
-            "Element does not exist", "product", req.body.productsIds.filter((item) =>
-                !product.isProductExists(getProducts(), item)))})
+
+    if(!req.body.productsIds || _.isEmpty(req.body.productsIds)) {
+        result = responseHelpers.getFailureResponse(operations.POST_RELATION, types.PRODUCTS_IDS, errors.REQUIRED)
+        return res.status(status).json(result)
     }
-    if (req.body.productsIds.some((item) =>
-            catalogHelpers.isRelationExists(catalog.getCatalog(), req.params.userId, item))) {
-        return res.status(400).json({response: getResponse(false, "add relation to the",
-            "Element with id " + req.params.userId + " already has this relation", "user",
-            req.body.productsIds.filter((item) => catalogHelpers.isRelationExists(catalog.getCatalog(),
-                req.params.userId, item)))})
+
+    let productsAbsent = req.body.productsIds.filter((item) => !(productHelpers.isProductExists(getProducts(), item)))
+    if(!_.isEmpty(productsAbsent)) {
+        result = responseHelpers.getFailureResponse(operations.POST_RELATION, types.PRODUCTS, errors.NOT_EXISTS,
+            {"ids": productsAbsent})
+        return res.status(status).json(result)
     }
-    return res.status(200).json({response: getResponse(true),
-        result: catalog.addUserProducts(req.params.userId, req.body.productsIds)})
+
+    let relationsExisting = catalog.getCatalog().filter((item) => !(item.productId in req.body.productsIds))
+    if(!_.isEmpty(relationsExisting)) {
+        result = responseHelpers.getFailureResponse(operations.POST_RELATION, types.RELATION, errors.EXISTS,
+            relationsExisting)
+        return res.status(status).json(result)
+    }
+
+    status = 200
+    result = responseHelpers.getSuccessResponse(operations.POST_RELATION, catalog.addUsersProducts(req.params.userId,
+        req.body.productsIds), types.RELATIONS)
+
+    return res.status(status).json(result)
 }
-
-
-
-
-

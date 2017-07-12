@@ -1,24 +1,26 @@
 import * as product from '../../db/tables/product.js'
 import * as helpers from '../../helpers/product.js'
-import getResponse from '../../helpers/response'
-
+import * as responseHelpers from '../../helpers/response'
+import { types } from '../constants'
+import { operations } from '../constants'
+import { errors } from '../constants'
 
 export function updateProductById(req, res) {
+    let status = 400
+    let result
+
     let products = product.getProducts()
 
     if(!helpers.isProductExists(products, req.params.productId)) {
-        return res.status(400).json({response: getResponse(false, "update",
-            "Element with id " + req.params.productId + " does not exist", "user")})
+        result = responseHelpers.getFailureResponse(operations.PUT, types.PRODUCT, errors.NOT_EXISTS,
+            {"id": req.params.productId})
+        return res.status(status).json(result)
     }
 
-    let newProperties = req.body
-    if (newProperties.id) {
-        delete newProperties["id"]
-    }
+    delete req.body["id"]
+    status = 200
+    result = responseHelpers.getSuccessResponse(operations.PUT, product.updateProductById(req.params.productId, req.body),
+        types.PRODUCT)
 
-    return res.status(200).json({response: getResponse(true),
-        result: product.updateProductById(req.params.productId, newProperties)})
+    return res.status(status).json(result)
 }
-
-
-

@@ -1,7 +1,6 @@
+import _ from 'lodash'
+
 export function isProductExists(products, productId) {
-    return products.some(item => productId.toString() === item.id)
+    return _.some(products, (item) => productId.toString() === item.id.toString())
 }
 
-export function isProductsEmpty(products) {
-    return products.length === 0
-}

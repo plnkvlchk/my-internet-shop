@@ -1,8 +1,26 @@
-export default function getResponse(success, operationType, info, elementType, data) {
-    if (success) {
-        return {success: true}
-    } else {
-        return {success: false, error: {message: "Cannot " + operationType + " element", info: info,
-            elementType: elementType, data: data}}
+// export function getResponseObject(success, operationType, invalidProperty, errorName) {
+//     return {
+//         success: success,
+//         message: `Cannot ${operationType} element`,
+//         error: `${invalidProperty} ${errorName}.`
+//     }
+// }
+
+export function getSuccessResponse(operationType, data, dataType) {
+    return Object.assign({
+        success: true,
+        operation: operationType
+    }, {
+        dataType: dataType,
+        data: data
+    })
+}
+
+export function getFailureResponse(operationType, invalidProperty, errorName, data) {
+    return {
+        success: false,
+        message: `Cannot ${operationType} element`,
+        error: `${invalidProperty} ${errorName}.`,
+        data: data
     }
 }

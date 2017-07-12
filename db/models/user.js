@@ -1,18 +1,12 @@
-// export default function User(name = "default name", login, id) {
-//
-//     this.name = name
-//     this.login = login
-//     this.id = (id || (new Date().getTime() + Math.random())).toString()
-//
-// }
-
 export default function User(user) {
-    this.name = user.name || 'default name'
+    if (!user.name) {
+        throw new ReferenceError('name')
+    }
+    if (!user.login) {
+        throw new ReferenceError('login')
+    }
+
+    this.name = user.name
     this.login = user.login
-    this.id = user.id || (new Date().getTime() + Math.random()).toString()
+    this.id = user.id.toString() || (new Date().getTime() + Math.random()).toString() //TODO: check pattern of id
 }
-
-
-
-
-
