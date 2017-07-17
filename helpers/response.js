@@ -1,11 +1,3 @@
-// export function getResponseObject(success, operationType, invalidProperty, errorName) {
-//     return {
-//         success: success,
-//         message: `Cannot ${operationType} element`,
-//         error: `${invalidProperty} ${errorName}.`
-//     }
-// }
-
 export function getSuccessResponse(operationType, data, dataType) {
     return Object.assign({
         success: true,

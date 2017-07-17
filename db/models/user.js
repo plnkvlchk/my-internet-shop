@@ -1,3 +1,5 @@
+import _ from 'lodash'
+
 export default function User(user) {
     if (!user.name) {
         throw new ReferenceError('name')
@@ -8,5 +10,8 @@ export default function User(user) {
 
     this.name = user.name
     this.login = user.login
-    this.id = user.id.toString() || (new Date().getTime() + Math.random()).toString() //TODO: check pattern of id
+    //TODO: check pattern of id
+    if (user.id) {
+        this.id = user.id.toString()
+    }
 }

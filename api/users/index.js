@@ -3,7 +3,7 @@ import * as get from './get'
 import * as post from './post'
 import * as del from './delete'
 import * as put from './put'
-import {routes} from '../constants'
+import { routes } from '../constants'
 
 const router = new express.Router()
 

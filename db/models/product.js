@@ -8,5 +8,10 @@ export default function Product(product) {
 
     this.name = product.name
     this.price = product.price
-    this.id = product.id.toString() || (new Date().getTime() + Math.random()).toString() //TODO: check pattern of id
+
+    if(product.id) {
+        this.id = product.id.toString()
+    }
+
+    //TODO: check pattern of id
 }
