@@ -8,7 +8,7 @@ export function getUsers() {
 
 export function addUser(user) {
     users.push(user)
-    return user
+    return user //TODO: you should return only new added elements
 }
 
 export function getUserById(userId) {
