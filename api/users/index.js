@@ -7,6 +7,7 @@ import { routes } from '../constants'
 
 const router = new express.Router()
 
+
 router.get(routes.USERS.ID, get.getUserById)
 router.get(routes.USERS.EMPTY, get.getAll)
 router.get(routes.USERS.ADD_PRODUCT, get.getUsersProducts)

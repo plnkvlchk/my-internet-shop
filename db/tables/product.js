@@ -8,7 +8,7 @@ export function getProducts() {
 
 export function addProduct(product) {
     products.push(product)
-    return product
+    return product //TODO: you should return only new added elements
 }
 
 export function getProductById(productId) {
