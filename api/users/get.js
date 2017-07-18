@@ -3,7 +3,21 @@ import { types, operations, errors } from '../constants'
 import { manyOrNone, oneOrNone } from '../../db'
 import { getAllUsersQuery, getUserByIdQuery, getUsersProductsQuery } from '../../sql-queries'
 
+import squel from 'squel'
+
 export async function getAll(req, res) {
+    const squelPostgres = squel.useFlavour('postgres')
+    const x = 'asd'
+    const query = squelPostgres.delete()
+        .from('users')
+        .join('catalog')
+        // .on('user_id = id')
+        .where(`id = ${x}`)
+        .returning('*')
+        .toString()
+    console.log(query)
+
+
     const dataFromPostgres = await manyOrNone(getAllUsersQuery())
     const result = responseHelpers.getSuccessResponse(operations.GET, dataFromPostgres, types.USERS)
     return res.status(200).json(result)

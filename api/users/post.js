@@ -1,13 +1,11 @@
 import User from '../../db/models/user.js'
 import * as responseHelpers from '../../helpers/response'
-import { types } from '../constants'
-import { operations } from '../constants'
-import { errors } from '../constants'
+import { types, operations, errors } from '../constants'
 import _ from 'lodash'
 import { oneOrNone, manyOrNone } from '../../db'
-import { addUserQuery, addUsersProductsQuery, getUserByIdQuery } from '../../sql-queries'
+import { addUserQuery, addUsersProductsQuery, getUserByIdQuery, getUsersProductsQuery } from '../../sql-queries'
 import { USERS } from '../../constants'
-import { getUsersWithThisIdOrLoginQuery, getUsersWithThisLoginQuery } from '../../sql-queries/helpers'
+import { getUsersWithThisIdOrLoginQuery, getUsersWithThisLoginQuery, getProductsIdsQuery } from '../../sql-queries/helpers'
 
 export async function addUser(req, res) {
     let result
@@ -58,10 +56,11 @@ export async function addUsersProducts(req, res) {
     let result
     let status = 400
 
-    const currentUser = oneOrNone(getUserByIdQuery(req.params.userId))
+    const currentUser = await oneOrNone(getUserByIdQuery(req.params.userId))
     if (!currentUser) {
-        result = responseHelpers.getFailureResponse(operations.POST_RELATION, types.USER, errors.NOT_EXISTS,
-            { "id": req.params.userId })
+        result = responseHelpers.getFailureResponse(operations.POST_RELATION, types.USER, errors.NOT_EXISTS, {
+            "id": req.params.userId
+        })
         return res.status(status).json(result)
     }
 
@@ -70,26 +69,37 @@ export async function addUsersProducts(req, res) {
         return res.status(status).json(result)
     }
 
-    const dataFromPostgres = manyOrNone(addUsersProductsQuery(req.params.userId, req.body.productsIds))
-    result = responseHelpers.getSuccessResponse(operations.POST_RELATION, dataFromPostgres, types.RELATIONS)
+    let dataFromPostgres = await manyOrNone(getProductsIdsQuery(req.body.productsIds))
+    const productsIdsFromPostgres = _.map(dataFromPostgres, item => item.id)
+    if (productsIdsFromPostgres.length < req.body.productsIds.length) {
+        const map = _.reduce(productsIdsFromPostgres, (acc,item) => {
+            acc[item] = true
+            return acc
+        }, {})
+        const productsNotExisting = _.filter(req.body.productsIds, id => !map[id])
+        result = responseHelpers.getFailureResponse(operations.POST_RELATION, types.PRODUCT, errors.NOT_EXISTS, {
+            ids: productsNotExisting
+        })
+        return res.status(status).json(result)
+    }
 
-    // let productsAbsent = req.body.productsIds.filter((item) => !(productHelpers.isProductExists(getProducts(), item)))
-    // if(!_.isEmpty(productsAbsent)) {
-    //     result = responseHelpers.getFailureResponse(operations.POST_RELATION, types.PRODUCTS, errors.NOT_EXISTS,
-    //         {"ids": productsAbsent})
-    //     return res.status(status).json(result)
-    // }
-    //
-    // let relationsExisting = catalog.getCatalog().filter((item) => !(item.productId in req.body.productsIds))
-    // if(!_.isEmpty(relationsExisting)) {
-    //     result = responseHelpers.getFailureResponse(operations.POST_RELATION, types.RELATION, errors.EXISTS,
-    //         relationsExisting)
-    //     return res.status(status).json(result)
-    // }
-    //
-    // status = 200
-    // result = responseHelpers.getSuccessResponse(operations.POST_RELATION, catalog.addUsersProducts(req.params.userId,
-    //     req.body.productsIds), types.RELATIONS)
+    dataFromPostgres = await manyOrNone(getUsersProductsQuery(req.params.userId))
+    const productsIdsRelatedFromPostgres = _.map(dataFromPostgres, item => item.product_id)
+    const map = _.reduce(productsIdsRelatedFromPostgres, (acc, item) => {
+        acc[item] = true
+        return acc
+    }, {})
+    const productsIdsRelatedFromRequest = _.filter(req.body.productsIds, id => map[id])
+    if (!_.isEmpty(productsIdsRelatedFromRequest)) {
+        result = responseHelpers.getFailureResponse(operations.POST_RELATION, types.RELATION, errors.EXISTS, {
+            user_id: req.params.userId,
+            products_ids: productsIdsRelatedFromRequest
+        })
+        return res.status(status).json(result)
+    }
+
+    dataFromPostgres = await manyOrNone(addUsersProductsQuery(req.params.userId, req.body.productsIds))
+    result = responseHelpers.getSuccessResponse(operations.POST_RELATION, dataFromPostgres, types.RELATIONS)
 
     return res.status(status).json(result)
 }

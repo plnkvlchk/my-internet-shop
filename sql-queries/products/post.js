@@ -1,22 +1,27 @@
 import squel from 'squel'
 import { PRODUCTS } from '../../constants'
 
+const squelPostgres = squel.useFlavour('postgres')
+
 export function addProductQuery(values) {
     if (values.id) {
-        return squel.insert()
+        return squelPostgres.insert()
             .into(PRODUCTS.NAME)
-            .set(PRODUCTS.COLUMNS.NAME, values.name)
-            .set(PRODUCTS.COLUMNS.PRICE, values.price)
-            .set(PRODUCTS.COLUMNS.ID, values.id)
+            .setFields({
+                [PRODUCTS.COLUMNS.NAME]: values.name,
+                [PRODUCTS.COLUMNS.PRICE]: values.price,
+                [PRODUCTS.COLUMNS.ID]: values.id
+            })
+            .returning('*')
             .toString()
     } else {
-        console.log('without id')
-        return squel.insert()
+        return squelPostgres.insert()
             .into(PRODUCTS.NAME)
-            .set(PRODUCTS.COLUMNS.NAME, values.name)
-            .set(PRODUCTS.COLUMNS.PRICE, values.price)
+            .setFields({
+                [PRODUCTS.COLUMNS.NAME]: values.name,
+                [PRODUCTS.COLUMNS.PRICE]: values.price
+            })
+            .returning('*')
             .toString()
     }
 }
-
-

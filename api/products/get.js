@@ -37,7 +37,7 @@ export async function getProductsUsers(req, res) {
     let status = 400
     let result
 
-    const currentProduct = await oneOrNone(getProductByIdQuery(req.params.userId))
+    const currentProduct = await oneOrNone(getProductByIdQuery(req.params.productId))
     if (!currentProduct) {
         result = responseHelpers.getFailureResponse(operations.GET_RELATION, types.PRODUCT, errors.NOT_EXISTS,
             {"id": req.params.productId})

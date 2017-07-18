@@ -1,11 +1,13 @@
 import squel from 'squel'
 import { USERS } from '../../constants/tables'
 
+const squelPostgres = squel.useFlavour('postgres')
+
 export function updateUserByIdQuery(id, values) {
-    return squel.update()
+    return squelPostgres.update()
         .table(USERS.NAME)
-        .set(USERS.COLUMNS.LOGIN, values.login)
-        .set(USERS.COLUMNS.NAME, values.name)
+        .setFields(values)
         .where(`${USERS.COLUMNS.ID} = '${id}'`)
+        .returning('*')
         .toString()
 }

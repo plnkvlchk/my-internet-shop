@@ -1,7 +1,6 @@
 import squel from 'squel'
 import { CATALOG } from '../../constants'
 
-
 const squelPostgres = squel.useFlavour('postgres')
 
 export function addUsersProductsQuery(userId, productsIds) {

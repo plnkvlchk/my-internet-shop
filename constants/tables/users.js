@@ -6,5 +6,3 @@ export const USERS = {
         ID: 'id'
     }
 }
-
-

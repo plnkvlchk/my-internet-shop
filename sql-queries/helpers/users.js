@@ -18,3 +18,18 @@ export function getUsersWithThisLoginQuery(login) {
         .where(`${USERS.COLUMNS.LOGIN} = '${login}'`)
         .toString()
 }
+
+export function getUsersIdsQuery(ids) {
+    let whereClause = ''
+    ids.forEach((item) => {
+        whereClause += `${USERS.COLUMNS.ID} = '${item}' OR `
+    } )
+    // SEEMS TO BE A VERY VERY BAD SOLUTION
+    whereClause = whereClause.substr(0, whereClause.length - 4)
+
+    return squel.select()
+        .from(USERS.NAME)
+        .field(USERS.COLUMNS.ID)
+        .where(whereClause)
+        .toString()
+}
