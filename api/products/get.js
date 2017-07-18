@@ -1,53 +1,49 @@
 import * as responseHelpers from '../../helpers/response'
-import { types } from '../constants'
-import { operations } from '../constants'
-import { errors } from '../constants'
-import { manyOrNone, oneOrNone } from '../../db'
-import { getAllProductsQuery, getProductByIdQuery, getProductsUsersQuery } from '../../sql-queries'
+import {
+    OPERATIONS,
+    ERRORS_DESCRIPTIONS
+} from '../constants'
+import {
+    manyOrNone,
+    oneOrNone
+} from '../../db'
+import {
+    getAllProductsQuery,
+    getProductByIdQuery,
+    getProductsRelationsQuery
+} from '../../sql-queries'
+import {
+    PRODUCTS
+} from '../../constants'
 
 export async function getAll(req, res) {
-    const dataFromPostgres = await manyOrNone(getAllProductsQuery())
-    const result = responseHelpers.getSuccessResponse(operations.GET, dataFromPostgres, types.PRODUCTS)
-    return res.status(200).json(result)
+    const products = await manyOrNone(getAllProductsQuery())
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATIONS.GET, products))
 }
 
 export async function getProductById(req, res) {
-    let status = 400
-    let result
+    const product = await oneOrNone(getProductByIdQuery(req.params.productId))
 
-    console.log(getProductByIdQuery(req.params.productId))
-    const dataFromPostgres = await oneOrNone(getProductByIdQuery(req.params.productId))
-    console.log(dataFromPostgres)
-
-
-    if (dataFromPostgres) {
-        console.log('g')
-        result = responseHelpers.getSuccessResponse(operations.GET, dataFromPostgres, types.PRODUCT)
-        status = 200
+    if (product) {
+        return res.status(200).json(responseHelpers.getSuccessResponse(OPERATIONS.GET, product))
     } else {
-        result = responseHelpers.getFailureResponse(operations.GET, types.PRODUCT, errors.NOT_EXISTS, {
-            "id": req.params.productId
-        })
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATIONS.GET, PRODUCTS.COLUMNS.ID,
+            ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+                [PRODUCTS.COLUMNS.ID]: req.params.productId
+            }))
     }
-
-    return res.status(status).json(result)
 }
 
-export async function getProductsUsers(req, res) {
-    let status = 400
-    let result
-
-    const currentProduct = await oneOrNone(getProductByIdQuery(req.params.productId))
-    if (!currentProduct) {
-        result = responseHelpers.getFailureResponse(operations.GET_RELATION, types.PRODUCT, errors.NOT_EXISTS,
-            {"id": req.params.productId})
-        return res.status(status).json(result)
+export async function getProductsRelations(req, res) {
+    const product = await oneOrNone(getProductByIdQuery(req.params.productId))
+    if (!product) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATIONS.GET, PRODUCTS.COLUMNS.ID,
+            ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+                [PRODUCTS.COLUMNS.ID]: req.params.productId
+            }))
     }
 
-    const dataFromPostgres = await manyOrNone(getProductsUsersQuery(req.params.productId))
+    const relations = await manyOrNone(getProductsRelationsQuery(req.params.productId))
 
-    status = 200
-    result = responseHelpers.getSuccessResponse(operations.GET_RELATION, dataFromPostgres, types.RELATIONS)
-
-    return res.status(status).json(result)
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATIONS.GET, relations))
 }

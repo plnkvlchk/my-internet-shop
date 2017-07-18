@@ -8,7 +8,7 @@ export function getUsersProductsQuery(user_id) {
         .toString()
 }
 
-export function getProductsUsersQuery(product_id) {
+export function getProductsRelationsQuery(product_id) {
     return squel.select()
         .from(CATALOG.NAME)
         .where(`${CATALOG.COLUMNS.PRODUCT_ID} = '${product_id}'`)

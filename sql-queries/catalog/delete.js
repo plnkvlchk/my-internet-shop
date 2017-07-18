@@ -20,7 +20,7 @@ export function deleteUsersProductsQuery(user_id) {
         .toString()
 }
 
-export function deleteProductsUsersQuery(product_id) {
+export function deleteProductsRelationsQuery(product_id) {
     return squelPostgres.delete()
         .from(CATALOG.NAME)
         .where(`${CATALOG.COLUMNS.PRODUCT_ID} = '${product_id}'`)

@@ -3,23 +3,23 @@ import * as get from './get'
 import * as post from './post'
 import * as del from './delete'
 import * as put from './put'
-import { routes } from '../constants'
+import { ROUTES } from '../constants'
 
 const router = new express.Router()
 
 
-router.get(routes.USERS.ID, get.getUserById)
-router.get(routes.USERS.EMPTY, get.getAll)
-router.get(routes.USERS.ADD_PRODUCT, get.getUsersProducts)
+router.get(ROUTES.USERS.ID, get.getUserById)
+router.get(ROUTES.USERS.EMPTY, get.getAll)
+router.get(ROUTES.USERS.ADD_PRODUCT, get.getUsersProducts)
 
-router.post(routes.USERS.EMPTY, post.addUser)
-router.post(routes.USERS.ADD_PRODUCT, post.addUsersProducts)
+router.post(ROUTES.USERS.EMPTY, post.addUser)
+router.post(ROUTES.USERS.ADD_PRODUCT, post.addUsersProducts)
 
-router.delete(routes.USERS.ID, del.deleteUserById)
-router.delete(routes.USERS.EMPTY, del.deleteAllUsers)
-router.delete(routes.USERS.ADD_PRODUCT_ID, del.deleteRelationByIds)
-router.delete(routes.USERS.ADD_PRODUCT, del.deleteUsersRelations)
+router.delete(ROUTES.USERS.ID, del.deleteUserById)
+router.delete(ROUTES.USERS.EMPTY, del.deleteAllUsers)
+router.delete(ROUTES.USERS.ADD_PRODUCT_ID, del.deleteRelationByIds)
+router.delete(ROUTES.USERS.ADD_PRODUCT, del.deleteUsersRelations)
 
-router.put(routes.USERS.ID, put.updateUserById)
+router.put(ROUTES.USERS.ID, put.updateUserById)
 
 export default router
