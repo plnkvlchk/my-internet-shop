@@ -1,5 +1,19 @@
 import squel from 'squel'
 import { USERS } from '../../constants'
+import _ from 'lodash'
+
+export function getUsersByConditions(conditions) {
+    let whereClause = ''
+    _.forEach(conditions, (value, key) => {
+        whereClause += `${key} = '${value}' OR `
+    })
+    whereClause = whereClause.substr(0, whereClause.length - 4)
+
+    return squel.select()
+        .from(USERS.NAME)
+        .where(whereClause)
+        .toString()
+}
 
 export function getUsersWithThisIdOrLoginQuery(id, login) {
     return squel.select()

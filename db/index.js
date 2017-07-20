@@ -12,3 +12,15 @@ export function oneOrNone(query) {
 export function manyOrNone(query) {
     return db.manyOrNone(query)
 }
+
+export function remove(query) {
+    return db.query(query)
+}
+
+export function insert(query) {
+    return db.query(query)
+}
+
+export function update(query) {
+    return db.query(query)
+}

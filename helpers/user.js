@@ -1,15 +1,12 @@
 import _ from 'lodash'
+import { USERS } from '../constants'
 
-export function isUserMatchesUniqueConstraint(users, user) {
-    return !_.some(users, (item) => (user.id === item.id) || (user.login === item.login))
-}
-//TODO: jsdoc
+export function isValuesValid(values) {
+    if (!_.isString(values[USERS.COLUMNS.LOGIN])) {
+        throw new TypeError(USERS.COLUMNS.LOGIN)
+    }
 
-export function isUserLoginUnique(users, userLogin) {
-    return !_.some(users, ['login', userLogin])
-}
-//TODO: jsdoc
-
-export function isUserExists(users, userId) {
-    return _.some(users, ['id', userId.toString()])
+    if (!_.isString(values[USERS.COLUMNS.NAME])) {
+        throw new TypeError(USERS.COLUMNS.NAME)
+    }
 }

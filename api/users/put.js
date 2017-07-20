@@ -1,49 +1,65 @@
 import * as responseHelpers from '../../helpers/response'
-import { types, operations, errors } from '../constants'
-import { updateUserByIdQuery, getUserByIdQuery } from '../../sql-queries'
-import { oneOrNone, manyOrNone } from '../../db'
+import {
+    OPERATION_TYPES,
+    ERRORS_DESCRIPTIONS
+} from '../constants'
+import {
+    updateUserByIdQuery,
+    getUserByIdQuery,
+    getUsersByConditions
+} from '../../sql-queries'
+import { oneOrNone,
+    manyOrNone,
+    update
+} from '../../db'
 import _ from 'lodash'
-import { getUsersWithThisIdOrLoginQuery } from '../../sql-queries/helpers'
 import { USERS } from '../../constants'
+import { isValuesValid } from '../../helpers/user'
 
 export async function updateUserById(req, res) {
-    let result
-    let status = 400
-
-    delete req.body['id']
-    _.forEach(_.keys(req.body), item => {
-        if (_.values(USERS.COLUMNS).indexOf(item) === -1) {
-            delete req.body[item]
+    let newValues = {}
+    _.forEach(USERS.COLUMNS, (value) => {
+        if (!(value === USERS.COLUMNS.ID) && req.body[value] ) {
+            newValues[value] = req.body[value]
         }
     })
 
-    const similarRows = await manyOrNone(getUsersWithThisIdOrLoginQuery(req.params.userId, req.body.login))
-    const userWithSameId = _.filter(similarRows, (item) => item.id === req.params.userId)
-    const userWithSameLogin = _.filter(similarRows, (item) => item.id === req.params.login)
-
-    if (_.isEmpty(userWithSameId)) {
-        result = responseHelpers.getFailureResponse(operations.PUT, types.USER, errors.NOT_EXISTS, {
-            "id": req.params.userId
-        })
-        return res.status(status).json(result)
+    try {
+        isValuesValid(newValues)
+    } catch (err) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.PUT, err.message,
+            ERRORS_DESCRIPTIONS.WRONG_TYPE, {
+                [err.message]: newValues[err.message]
+            }))
     }
 
-    if (_.isEmpty(req.body)) {
-        const currentUser = await oneOrNone(getUserByIdQuery(req.params.userId))
-        result = responseHelpers.getSuccessResponse(operations.PUT, currentUser, types.USER)
-        status = 200
-        return res.status(status).json(result)
+    const similarRows = await manyOrNone(getUsersByConditions({
+        [USERS.COLUMNS.ID]: req.params.userId,
+        [USERS.COLUMNS.LOGIN]: newValues[USERS.COLUMNS.LOGIN]
+    }))
+
+    const userWithSameId = _.filter(similarRows, (item) => item[USERS.COLUMNS.ID] === req.params.userId)
+    const userWithSameLogin = _.filter(similarRows, (item) => item[USERS.COLUMNS.LOGIN] === newValues[USERS.COLUMNS.LOGIN])
+    console.log(userWithSameLogin)
+
+    if (_.isEmpty(userWithSameId)) {
+        return res.status(400).json(OPERATION_TYPES.PUT, USERS.COLUMNS.ID, ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+            [USERS.COLUMNS.ID]: req.params.userId
+        })
+    }
+
+    if (_.isEmpty(newValues)) {
+        const user = await oneOrNone(getUserByIdQuery(req.params.userId))
+        return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.PUT, user))
     }
 
     if (_.isEmpty(userWithSameLogin) || userWithSameLogin[0] === userWithSameId.id) {
-        const dataFromPostgres = await oneOrNone(updateUserByIdQuery(req.params.userId, req.body))
-        result = responseHelpers.getSuccessResponse(operations.PUT, dataFromPostgres, types.USER)
-        status = 200
-        return res.status(status).json(result)
+        const userUpdated = await update(updateUserByIdQuery(req.params.userId, newValues))
+        return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.PUT, userUpdated))
     }
 
-    result = responseHelpers.getFailureResponse(operations.PUT, types.LOGIN, errors.NOT_UNIQUE, {
-        "login": req.body.login
-    })
-    return res.status(status).json(result)
+    return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.PUT, USERS.COLUMNS.LOGIN,
+        ERRORS_DESCRIPTIONS.NOT_UNIQUE, {
+            [USERS.COLUMNS.LOGIN]: req.body.login
+        }))
 }

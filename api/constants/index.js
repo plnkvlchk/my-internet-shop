@@ -1,4 +1,3 @@
 export * from './routes'
-export * from './types'
-export * from './errors'
-export * from './operations'
+export * from './errors-descriptions'
+export * from './opertion-types'

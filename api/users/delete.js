@@ -1,77 +1,73 @@
 import * as responseHelpers from '../../helpers/response'
-import { types, operations, errors } from '../constants'
-import { deleteUserByIdQuery, getUserByIdQuery, deleteRelationByIdsQuery, deleteUsersProductsQuery, deleteAllUsersQuery } from '../../sql-queries'
-import { oneOrNone, manyOrNone } from '../../db'
+import {
+    OPERATION_TYPES,
+    ERRORS_DESCRIPTIONS
+} from '../constants'
+import {
+    deleteUserByIdQuery,
+    getUserByIdQuery,
+    deleteRelationByIdsQuery,
+    deleteUsersProductsQuery,
+    deleteAllUsersQuery
+} from '../../sql-queries'
+import {
+    oneOrNone,
+    remove
+} from '../../db'
 import { deleteUsersDependenciesQuery } from '../../sql-queries/helpers'
+import {
+    USERS,
+    CATALOG
+} from '../../constants'
 
 export async function deleteUserById(req, res) {
-    let result
-    let status = 400
-
-    const currentUser = await oneOrNone(getUserByIdQuery(req.params.userId))
-    if(!currentUser) {
-        result = responseHelpers.getFailureResponse(operations.DELETE, types.USER, errors.NOT_EXISTS, {
-            "id": req.params.userId
-        })
-        return res.status(status).json(result)
+    const user = await oneOrNone(getUserByIdQuery(req.params.userId))
+    if(!user) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.DELETE, USERS.COLUMNS.ID,
+            ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+                [USERS.COLUMNS.ID]: req.params.userId
+            }))
     }
 
-    await manyOrNone(deleteUsersDependenciesQuery(req.params.userId))
-    const dataFromPostgres = await oneOrNone(deleteUserByIdQuery(req.params.userId))
-    result = responseHelpers.getSuccessResponse(operations.DELETE, dataFromPostgres, types.USER)
-    status = 200
-
-    return res.status(status).json(result)
+    await remove(deleteUsersDependenciesQuery(req.params.userId))
+    const userDeleted = await remove(deleteUserByIdQuery(req.params.userId))
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.DELETE, userDeleted))
 }
 
 export async function deleteAllUsers(req, res) {
-    const dataFromPostgres = await manyOrNone(deleteAllUsersQuery())
-    const result = responseHelpers.getSuccessResponse(operations.DELETE, dataFromPostgres, types.USERS)
-    return res.status(200).json(result)
+    const usersDeleted = await remove(deleteAllUsersQuery())
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.DELETE, usersDeleted))
 }
 
 export async function deleteRelationByIds(req, res) {
-    let result
-    let status = 400
-
-    const currentUser = await oneOrNone(getUserByIdQuery(req.params.userId))
-    if (!currentUser) {
-        result = responseHelpers.getFailureResponse(operations.DELETE_RELATION, types.USER, errors.NOT_EXISTS, {
-            "id": req.params.userId
+    const user = await oneOrNone(getUserByIdQuery(req.params.userId))
+    if (!user) {
+        return res.status(400).json(OPERATION_TYPES.DELETE, CATALOG.COLUMNS.USER_ID, ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+            [CATALOG.COLUMNS.USER_ID]: req.params.userId
         })
-        return res.status(status).json(result)
     }
 
-    const dataFromPostgres = await oneOrNone(deleteRelationByIdsQuery(req.params.userId, req.params.productId))
-    if (!dataFromPostgres) {
-        result = responseHelpers.getFailureResponse(operations.DELETE_RELATION, types.RELATION, errors.NOT_EXISTS, {
-            'user_id': req.params.userId,
-            'product_id': req.params.productId
-        })
-        return res.status(status).json(result)
+    const relationDeleted = await remove(deleteRelationByIdsQuery(req.params.userId, req.params.productId))
+    if (!relationDeleted) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.DELETE,
+            [CATALOG.COLUMNS.USER_ID, CATALOG.COLUMNS.PRODUCT_ID], ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+                [CATALOG.COLUMNS.USER_ID]: req.params.userId,
+                [CATALOG.COLUMNS.PRODUCT_ID]: req.params.productId
+            }))
     }
 
-    result = responseHelpers.getSuccessResponse(operations.DELETE_RELATION, dataFromPostgres, types.RELATION)
-    status = 200
-    return res.status(status).json(result)
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.DELETE, relationDeleted))
 }
 
 export async function deleteUsersRelations(req, res) {
-    let result
-    let status = 400
-
-    const currentUser = await oneOrNone(getUserByIdQuery(req.params.userId))
-    if (!currentUser) {
-        result = responseHelpers.getFailureResponse(operations.DELETE_RELATION, types.USER, errors.NOT_EXISTS, {
-            "id": req.params.userId
+    const user = await oneOrNone(getUserByIdQuery(req.params.userId))
+    if (!user) {
+        return res.status(400).json(OPERATION_TYPES.DELETE, CATALOG.COLUMNS.USER_ID, ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+            [CATALOG.COLUMNS.USER_ID]: req.params.userId
         })
-        return res.status(status).json(result)
     }
 
-    const dataFromPostgres = await manyOrNone(deleteUsersProductsQuery(req.params.userId))
+    const relationsDeleted = await remove(deleteUsersProductsQuery(req.params.userId))
 
-    result = responseHelpers.getSuccessResponse(operations.DELETE_RELATION, dataFromPostgres, types.RELATIONS)
-    status = 200
-
-    return res.status(status).json(result)
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.DELETE, relationsDeleted))
 }

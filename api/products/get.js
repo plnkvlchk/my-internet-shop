@@ -1,6 +1,6 @@
 import * as responseHelpers from '../../helpers/response'
 import {
-    OPERATIONS,
+    OPERATION_TYPES,
     ERRORS_DESCRIPTIONS
 } from '../constants'
 import {
@@ -13,21 +13,22 @@ import {
     getProductsRelationsQuery
 } from '../../sql-queries'
 import {
-    PRODUCTS
+    PRODUCTS,
+    CATALOG
 } from '../../constants'
 
 export async function getAll(req, res) {
     const products = await manyOrNone(getAllProductsQuery())
-    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATIONS.GET, products))
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.GET, products))
 }
 
 export async function getProductById(req, res) {
     const product = await oneOrNone(getProductByIdQuery(req.params.productId))
 
     if (product) {
-        return res.status(200).json(responseHelpers.getSuccessResponse(OPERATIONS.GET, product))
+        return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.GET, product))
     } else {
-        return res.status(400).json(responseHelpers.getFailureResponse(OPERATIONS.GET, PRODUCTS.COLUMNS.ID,
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.GET, PRODUCTS.COLUMNS.ID,
             ERRORS_DESCRIPTIONS.NOT_EXISTS, {
                 [PRODUCTS.COLUMNS.ID]: req.params.productId
             }))
@@ -37,7 +38,7 @@ export async function getProductById(req, res) {
 export async function getProductsRelations(req, res) {
     const product = await oneOrNone(getProductByIdQuery(req.params.productId))
     if (!product) {
-        return res.status(400).json(responseHelpers.getFailureResponse(OPERATIONS.GET, PRODUCTS.COLUMNS.ID,
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.GET, PRODUCTS.COLUMNS.ID,
             ERRORS_DESCRIPTIONS.NOT_EXISTS, {
                 [PRODUCTS.COLUMNS.ID]: req.params.productId
             }))
@@ -45,5 +46,5 @@ export async function getProductsRelations(req, res) {
 
     const relations = await manyOrNone(getProductsRelationsQuery(req.params.productId))
 
-    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATIONS.GET, relations))
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.GET, relations))
 }
