@@ -12,10 +12,7 @@ import {
     getProductByIdQuery,
     getProductsRelationsQuery
 } from '../../sql-queries'
-import {
-    PRODUCTS,
-    CATALOG
-} from '../../constants'
+import { PRODUCTS } from '../../constants'
 
 export async function getAll(req, res) {
     const products = await manyOrNone(getAllProductsQuery())

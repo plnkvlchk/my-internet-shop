@@ -22,7 +22,7 @@ export async function updateProductById(req, res) {
             newValues[value] = req.body[value]
         }
     })
-
+    // TODO: helpers must not throw exceptions
     try {
         isValuesValid(newValues)
     } catch (err) {

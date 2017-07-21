@@ -30,7 +30,6 @@ import {
     getIdsRelated
 } from '../../helpers/catalog'
 
-
 export async function addUser(req, res) {
     let newUser
     try {

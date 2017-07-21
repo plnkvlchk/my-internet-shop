@@ -34,13 +34,12 @@ export async function updateUserById(req, res) {
     }
 
     const similarRows = await manyOrNone(getUsersByConditions({
-        [USERS.COLUMNS.ID]: req.params.userId,
-        [USERS.COLUMNS.LOGIN]: newValues[USERS.COLUMNS.LOGIN]
+        [USERS.COLUMNS.ID]: [req.params.userId],
+        [USERS.COLUMNS.LOGIN]: [newValues[USERS.COLUMNS.LOGIN]]
     }))
 
     const userWithSameId = _.filter(similarRows, (item) => item[USERS.COLUMNS.ID] === req.params.userId)
     const userWithSameLogin = _.filter(similarRows, (item) => item[USERS.COLUMNS.LOGIN] === newValues[USERS.COLUMNS.LOGIN])
-    console.log(userWithSameLogin)
 
     if (_.isEmpty(userWithSameId)) {
         return res.status(400).json(OPERATION_TYPES.PUT, USERS.COLUMNS.ID, ERRORS_DESCRIPTIONS.NOT_EXISTS, {

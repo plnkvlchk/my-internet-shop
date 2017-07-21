@@ -70,7 +70,6 @@ export async function addProductsUsers(req, res) {
     let usersIds = await manyOrNone(getUsersIdsQuery(req.body.usersIds))
     usersIds = _.map(usersIds, item => item.id)
     const usersIdsNotExisting = getIdsNotExisting(req.body.usersIds, usersIds)
-    console.log(usersIdsNotExisting)
     if (!_.isEmpty(usersIdsNotExisting)) {
         return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.POST, CATALOG.COLUMNS.USER_ID,
             ERRORS_DESCRIPTIONS.NOT_EXISTS, usersIdsNotExisting))
@@ -88,6 +87,5 @@ export async function addProductsUsers(req, res) {
     }
 
     const relationsAdded = insert(addProductsUsersQuery(req.params.productId, req.body.usersIds))
-    console.log(relationsAdded)
     return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.POST, relationsAdded))
 }

@@ -1,9 +1,13 @@
 import _ from 'lodash'
 
+export function isUuidValueCorrect(value) {
+    const uuidPattern = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
+    return uuidPattern.test(value)
+}
+
 export function getIdsNotExisting(idsFromRequest, idsFromPostgres) {
     let idsNotExisting = []
     if (idsFromPostgres.length < idsFromRequest.length) {
-        console.log('entered here u stupid')
         const map = _.reduce(idsFromPostgres, (acc, item) => {
             acc[item] = true
             return acc
