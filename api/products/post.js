@@ -1,44 +1,91 @@
-import * as product from '../../db/tables/product.js'
-import * as catalog from '../../db/tables/catalog.js'
-import * as helpers from '../../helpers/product.js'
 import Product from '../../db/models/product.js'
-import getResponse from '../../helpers/response'
-import {isUserExists} from '../../helpers/user'
-import {getUsers} from '../../db/tables/user.js'
-import * as catalogHelpers from '../../helpers/catalog'
+import * as responseHelpers from '../../helpers/response'
+import {
+    OPERATION_TYPES,
+    ERRORS_DESCRIPTIONS
+} from '../constants'
+import _ from 'lodash'
+import {
+    getProductByIdQuery,
+    addProductQuery,
+    addProductsUsersQuery,
+    getProductsRelationsQuery,
+    getUsersIdsQuery
+} from '../../sql-queries/'
+import {
+    oneOrNone,
+    manyOrNone,
+    insert
+} from '../../db'
+import {
+    PRODUCTS,
+    CATALOG
+} from '../../constants'
+import {
+    getIdsNotExisting,
+    getIdsRelated
+} from '../../helpers/catalog'
 
-export function addProduct(req, res) {
-    const newProduct = new Product(req.body)
-    const products = product.getProducts()
-    if(!helpers.isProductExists(products, newProduct.id)) {
-        return res.status(200).json({response: getResponse(true), result: product.addProduct(newProduct)})
-    } else {
-        return res.status(400).json({response: getResponse(false, "add",
-            "Input 'ID' is not unique", "product")})
+export async function addProduct(req, res) {
+    let newProduct
+    try {
+        newProduct = new Product(req.body)
+    } catch(err) {
+        if (err.name === 'ReferenceError')
+            return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.POST, err.message,
+                ERRORS_DESCRIPTIONS.REQUIRED))
+        if (err.name === 'TypeError')
+            return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.POST, err.message,
+                ERRORS_DESCRIPTIONS.WRONG_TYPE))
     }
+
+    if(newProduct.id) {
+        const productWithSameId = await oneOrNone(getProductByIdQuery(newProduct.id))
+        if (productWithSameId) {
+            return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.POST, PRODUCTS.COLUMNS.ID,
+                ERRORS_DESCRIPTIONS.EXISTS, {
+                    [PRODUCTS.COLUMNS.ID]: newProduct.id
+                }))
+        }
+    }
+
+    const productAdded = await insert(addProductQuery(newProduct))
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.POST, productAdded))
 }
 
-export function addProductUsers(req, res) {
-
-    if (!helpers.isProductExists(product.getProducts(), req.params.productId)) {
-        return res.status(400).json({response: getResponse(false, "add relation to the",
-            "Element does not exist", "product", req.params.productId)})
+export async function addProductsUsers(req, res) {
+    const product = await oneOrNone(getProductByIdQuery(req.params.productId))
+    if (!product) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.POST, PRODUCTS.COLUMNS.ID,
+            ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+                [PRODUCTS.COLUMNS.ID]: req.params.productId
+            }))
     }
 
-    if (!req.body.usersIds.some((item) => isUserExists(getUsers(), item))) {
-        return res.status(400).json({response: getResponse(false, "add relation to the ",
-            "Element does not exist", "user", req.body.usersIds.filter((item) =>
-                !isUserExists(getUsers(), item)))})
+    if((!req.body.usersIds) || _.isEmpty(req.body.usersIds)) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.POST,
+            CATALOG.COLUMNS.USER_ID, ERRORS_DESCRIPTIONS.REQUIRED))
     }
 
-    if (req.body.usersIds.some((item) => catalogHelpers.isRelationExists(catalog.getCatalog(), item,
-            req.params.productId))) {
-        return res.status(400).json({response: getResponse(false, "add relation to the",
-            "Element with id " + req.params.productId + " already has this relation", "product",
-            req.body.usersIds.filter((item) => catalogHelpers.isRelationExists(catalog.getCatalog(),
-                item, req.params.productId)))})
+    let usersIds = await manyOrNone(getUsersIdsQuery(req.body.usersIds))
+    usersIds = _.map(usersIds, item => item.id)
+    const usersIdsNotExisting = getIdsNotExisting(req.body.usersIds, usersIds)
+    if (!_.isEmpty(usersIdsNotExisting)) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.POST, CATALOG.COLUMNS.USER_ID,
+            ERRORS_DESCRIPTIONS.NOT_EXISTS, usersIdsNotExisting))
     }
 
-    return res.status(200).json({response: getResponse(true),
-        result: catalog.addProductUsers(req.params.productId, req.body.usersIds)})
+    let relationsOfThisProduct = await manyOrNone(getProductsRelationsQuery(req.params.productId))
+    const usersIdsRelated = _.map(relationsOfThisProduct, item => item.user_id)
+    const usersIdsRelatedFromRequest = getIdsRelated(req.body.usersIds, usersIdsRelated)
+    if (!_.isEmpty(usersIdsRelatedFromRequest)) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.POST,
+            [CATALOG.COLUMNS.USER_ID, CATALOG.COLUMNS.PRODUCT_ID], ERRORS_DESCRIPTIONS.EXISTS, {
+                [CATALOG.COLUMNS.PRODUCT_ID]: req.params.productId,
+                [CATALOG.COLUMNS.USER_ID]: usersIdsRelatedFromRequest
+            }))
+    }
+
+    const relationsAdded = insert(addProductsUsersQuery(req.params.productId, req.body.usersIds))
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.POST, relationsAdded))
 }

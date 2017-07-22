@@ -1,37 +1,64 @@
-import * as user from '../../db/tables/user.js'
-import * as helpers from '../../helpers/user.js'
-import getResponse from '../../helpers/response' //TODO: helpers must not be exported as defaults
-//TODO: apply all objections from this file to all files nested it 'api/' folder
-//TODO: jsdoc
-//TODO: eslint
-export function updateUserById(req, res) {
-    let users = user.getUsers()
+import * as responseHelpers from '../../helpers/response'
+import {
+    OPERATION_TYPES,
+    ERRORS_DESCRIPTIONS
+} from '../constants'
+import {
+    updateUserByIdQuery,
+    getUserByIdQuery,
+    getUsersByConditions
+} from '../../sql-queries'
+import { oneOrNone,
+    manyOrNone,
+    update
+} from '../../db'
+import _ from 'lodash'
+import { USERS } from '../../constants'
+import { isValuesValid } from '../../helpers/user'
 
-    if (!helpers.isUserExists(users, req.params.userId)) {
-        return res.status(400).json({response: //TODO: json method takes the body of your future response, so there is no need in additional sibling
-            getResponse(false, "update"//TODO: this property must be moved to constants
-            , "Element with id " + req.params.userId + " does not exist" //TODO: use es6 templates here
-            , "user")})
+export async function updateUserById(req, res) {
+    let newValues = {}
+    _.forEach(USERS.COLUMNS, (value) => {
+        if (!(value === USERS.COLUMNS.ID) && req.body[value] ) {
+            newValues[value] = req.body[value]
+        }
+    })
+
+    try {
+        isValuesValid(newValues)
+    } catch (err) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.PUT, err.message,
+            ERRORS_DESCRIPTIONS.WRONG_TYPE, {
+                [err.message]: newValues[err.message]
+            }))
     }
 
-    let currentUser = user.getUserById(req.params.userId)
+    const similarRows = await manyOrNone(getUsersByConditions({
+        [USERS.COLUMNS.ID]: [req.params.userId],
+        [USERS.COLUMNS.LOGIN]: [newValues[USERS.COLUMNS.LOGIN]]
+    }))
 
-    if ((!helpers.isUserLoginUnique(users, req.body.login)) && !(currentUser.login === req.body.login)) {
-        return res.status(400).json({response: getResponse(false, "update",
-            "Input 'LOGIN' is not unique"//TODO: use es6 template here names of properties must be moved to constants
-        )})
+    const userWithSameId = _.filter(similarRows, (item) => item[USERS.COLUMNS.ID] === req.params.userId)
+    const userWithSameLogin = _.filter(similarRows, (item) => item[USERS.COLUMNS.LOGIN] === newValues[USERS.COLUMNS.LOGIN])
+
+    if (_.isEmpty(userWithSameId)) {
+        return res.status(400).json(OPERATION_TYPES.PUT, USERS.COLUMNS.ID, ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+            [USERS.COLUMNS.ID]: req.params.userId
+        })
     }
 
-    //TODO just delete id
-    let newProperties = req.body
-    if (newProperties.id) {
-        delete newProperties["id"]
+    if (_.isEmpty(newValues)) {
+        const user = await oneOrNone(getUserByIdQuery(req.params.userId))
+        return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.PUT, user))
     }
 
-    return res.status(200).json({response: getResponse(true),
-        result: user.updateUserById(req.params.userId, newProperties //TODO don't be lazy! create separate object for response
-        )})//TODO: is async operation, but we will discuss it lalte
+    if (_.isEmpty(userWithSameLogin) || userWithSameLogin[0] === userWithSameId.id) {
+        const userUpdated = await update(updateUserByIdQuery(req.params.userId, newValues))
+        return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.PUT, userUpdated))
+    }
+
+    return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.PUT, USERS.COLUMNS.LOGIN,
+        ERRORS_DESCRIPTIONS.NOT_UNIQUE, {
+            [USERS.COLUMNS.LOGIN]: req.body.login
+        }))
 }
-
-
-

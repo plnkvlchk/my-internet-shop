@@ -1,46 +1,72 @@
-import * as product from '../../db/tables/product.js'
-import * as helpers from '../../helpers/product.js'
-import getResponse from '../../helpers/response'
-import * as catalogHelpers from '../../helpers/catalog'
-import * as catalog from '../../db/tables/catalog'
+import * as responseHelpers from '../../helpers/response'
+import {
+    OPERATION_TYPES,
+    ERRORS_DESCRIPTIONS
+} from '../constants'
+import {
+    oneOrNone,
+    remove
+} from '../../db'
+import {
+    deleteProductByIdQuery,
+    deleteAllProductsQuery,
+    getProductByIdQuery,
+    deleteRelationByIdsQuery,
+    deleteProductsRelationsQuery,
+    deleteProductsDependenciesQuery
+} from '../../sql-queries/'
+import {
+    PRODUCTS,
+    CATALOG
+} from '../../constants'
 
-
-export function deleteProductById(req, res) {
-    if (helpers.isProductExists(product.getProducts(), req.params.productId)) {
-        return res.status(200).json({response: getResponse(true), result: product.deleteProductById(req.params.productId)})
-    } else {
-        return res.status(400).json({response: getResponse(false, "delete",
-            "Element with id " + req.params.productId + " does not exist", "product")})
+export async function deleteProductById(req, res) {
+    const product = await oneOrNone(getProductByIdQuery(req.params.productId))
+    if (!product) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.DELETE, PRODUCTS.COLUMNS.ID,
+            ERRORS_DESCRIPTIONS.NOT_EXISTS, req.params.productId))
     }
+
+    await remove(deleteProductsDependenciesQuery(req.params.productId))
+    const productDeleted = await remove(deleteProductByIdQuery(req.params.productId))
+
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.DELETE, productDeleted))
 }
 
-export function deleteAllProducts(req, res) {
-    return res.status(200).json({response: getResponse(true), result: product.deleteAllProducts()})
+export async function deleteAllProducts(req, res) {
+    const productsDeleted = await remove(deleteAllProductsQuery())
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.DELETE, productsDeleted))
 }
 
-export function deleteRelationByIds(req, res) {
-    if (!helpers.isProductExists(product.getProducts(), req.params.productId)) {
-        return res.status(400).json({response: getResponse(false, "delete relation of the",
-            "Element with id " + req.params.productId + " does not exist", "product")})
+export async function deleteRelationByIds(req, res) {
+    const product = await oneOrNone(getProductByIdQuery(req.params.productId))
+    if (!product) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.DELETE, PRODUCTS.COLUMNS.ID,
+            ERRORS_DESCRIPTIONS.NOT_EXISTS, req.params.productId))
     }
 
-    if (!catalogHelpers.isRelationExists(catalog.getCatalog(), req.params.userId, req.params.productId)) {
-        return res.status(400).json({response: getResponse(false, "delete relation of the",
-            "This element does not exist", "relation")})
+    const relationDeleted = await remove(deleteRelationByIdsQuery(req.params.userId, req.params.productId))
+    if (!relationDeleted) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.DELETE,
+            [CATALOG.COLUMNS.USER_ID, CATALOG.COLUMNS.PRODUCT_ID], ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+                [CATALOG.COLUMNS.USER_ID]: req.params.userId,
+                [CATALOG.COLUMNS.PRODUCT_ID]: req.params.productId
+            }))
     }
 
-    return res.status(200).json({response: getResponse(true),
-        result: catalog.deleteRelation(req.params.userId, req.params.productId)})
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.DELETE, relationDeleted))
 }
 
-export function deleteProductsRelations(req, res) {
-    if (!helpers.isProductExists(product.getProducts(), req.params.productId)) {
-        return res.status(400).json({response: getResponse(false, "delete relation of the",
-            "Element with id " + req.params.productId + " does not exist", "product")})
+export async function deleteProductsRelations(req, res) {
+    const product = await oneOrNone(getProductByIdQuery(req.params.productId))
+    if (!product) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.DELETE, PRODUCTS.COLUMNS.ID,
+            ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+                [PRODUCTS.COLUMNS.ID]: req.params.productId
+            }))
     }
-    let deleted = []
-    catalog.getProductUsers(product.getProductById(req.params.productId)).forEach((item) =>
-        deleted.push(catalog.deleteRelation(item, req.params.productId)))
-    return res.status(200).json({response: getResponse(true),
-        result: deleted})
+
+    const relationsDeleted = await remove(deleteProductsRelationsQuery(req.params.productId))
+
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.DELETE, relationsDeleted))
 }

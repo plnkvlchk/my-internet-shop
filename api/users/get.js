@@ -1,29 +1,49 @@
-import * as user from '../../db/tables/user.js'
-import * as catalog from '../../db/tables/catalog.js'
-import * as helpers from '../../helpers/user.js'
-import getResponse from '../../helpers/response'
+import * as responseHelpers from '../../helpers/response'
+import {
+    OPERATION_TYPES,
+    ERRORS_DESCRIPTIONS
+} from '../constants'
+import {
+    manyOrNone,
+    oneOrNone
+} from '../../db'
+import {
+    getAllUsersQuery,
+    getUserByIdQuery,
+    getUsersRelationsQuery
+} from '../../sql-queries'
+import {
+    USERS,
+    CATALOG
+} from '../../constants'
 
-export function getAll(req, res) {
-    return res.status(200).json({response: getResponse(true), result: user.getUsers()})
+export async function getAll(req, res) {
+    const users = await manyOrNone(getAllUsersQuery())
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.GET, users))
 }
 
+export async function getUserById(req, res) {
+    const user = await oneOrNone(getUserByIdQuery(req.params.userId))
 
-export function getUserById(req, res) {
-    const users = user.getUsers()
-    if (helpers.isUserExists(users, req.params.userId)) {
-        return res.status(200).json({response: getResponse(true), result: user.getUserById(req.params.userId)})
+    if (user) {
+        return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.GET, user))
     } else {
-        return res.status(400).json({response: getResponse(false, "get",
-            "Element with id " + req.params.userId + " does not exist", "user")})
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.GET, USERS.COLUMNS.ID,
+            ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+                [USERS.COLUMNS.ID]: req.params.userId
+            }))
     }
 }
 
-export function getUserProducts(req, res) {
-    if (!helpers.isUserExists(user.getUsers(), req.params.userId)) {
-        return res.status(400).json({response: getResponse(false, "get",
-            "Element does not exist", "user", req.params.userId)})
+export async function getUsersProducts(req, res) {
+    const user = await oneOrNone(getUserByIdQuery(req.params.userId))
+    if (!user) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.GET, CATALOG.COLUMNS.USER_ID,
+            ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+                [CATALOG.COLUMNS.USER_ID]: req.params.userId
+            }))
     }
-    return res.status(200).json({response: getResponse(true),
-        result: catalog.getUserProducts(user.getUserById(req.params.userId))})
-}
 
+    const relations = await manyOrNone(getUsersRelationsQuery(req.params.userId))
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.GET, relations))
+}

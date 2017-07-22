@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon --watch ./ --exec babel-node ./index.js --inspect",
-    "dev": "node ./index.js"
+    "dev": "node ./index.js",
+    "eslint": "./node_modules/.bin/eslint --ext .js --color ./ || exit 0",
+    "test": "mocha --compilers js:babel-core/register"
   },
   "author": "\u001b[A\u001b[B",
   "license": "ISC",
@@ -13,6 +15,10 @@
     "babel-cli": "^6.24.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
+    "chai": "^4.1.0",
+    "chai-http": "^3.0.0",
+    "eslint": "^4.2.0",
+    "mocha": "^3.4.2",
     "nodemon": "^1.11.0"
   },
   "dependencies": {
@@ -20,6 +26,9 @@
     "cookie-parser": "^1.4.3",
     "cors": "^2.8.3",
     "express": "^4.15.3",
-    "multer": "^1.3.0"
+    "lodash": "^4.17.4",
+    "multer": "^1.3.0",
+    "pg-promise": "^6.3.5",
+    "squel": "^5.10.0"
   }
 }

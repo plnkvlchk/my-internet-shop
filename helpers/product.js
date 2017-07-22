@@ -1,12 +1,14 @@
-//TODO: jsdoc
+import _ from 'lodash'
+import { PRODUCTS } from '../constants'
 
-export function isProductExists(products, productId) {
-    return products.some(item => productId.toString() === item.id) //TODO: use lodash some
+export function isValuesValid(values) {
+    if (!_.isString(values[PRODUCTS.COLUMNS.NAME])) {
+        throw new TypeError(PRODUCTS.COLUMNS.NAME)
+    }
 
+    if (!_.isNumber(values[PRODUCTS.COLUMNS.PRICE])) {
+        throw new TypeError(PRODUCTS.COLUMNS.PRICE)
+    }
 }
 
-//TODO: unused function
 
-export function isProductsEmpty(products) {
-    return products.length === 0
-}

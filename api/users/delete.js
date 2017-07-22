@@ -1,51 +1,73 @@
-import * as user from '../../db/tables/user.js'
-import * as catalog from '../../db/tables/catalog.js'
-import * as helpers from '../../helpers/user.js'
-import getResponse from '../../helpers/response'
-import * as catalogHelpers from '../../helpers/catalog'
+import * as responseHelpers from '../../helpers/response'
+import {
+    OPERATION_TYPES,
+    ERRORS_DESCRIPTIONS
+} from '../constants'
+import {
+    deleteUserByIdQuery,
+    getUserByIdQuery,
+    deleteRelationByIdsQuery,
+    deleteUsersProductsQuery,
+    deleteAllUsersQuery
+} from '../../sql-queries'
+import {
+    oneOrNone,
+    remove
+} from '../../db'
+import { deleteUsersDependenciesQuery } from '../../sql-queries/helpers'
+import {
+    USERS,
+    CATALOG
+} from '../../constants'
 
-
-export function deleteUserById(req, res) {
-    if (helpers.isUserExists(user.getUsers(), req.params.userId)) {
-        return res.status(200).json({response: getResponse(true), result: user.deleteUserById(req.params.userId)})
-    } else {
-        return res.status(400).json({response: getResponse(false, "delete",
-            "Element with id " + req.params.userId + " does not exist", "user")})
+export async function deleteUserById(req, res) {
+    const user = await oneOrNone(getUserByIdQuery(req.params.userId))
+    if(!user) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.DELETE, USERS.COLUMNS.ID,
+            ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+                [USERS.COLUMNS.ID]: req.params.userId
+            }))
     }
+
+    await remove(deleteUsersDependenciesQuery(req.params.userId))
+    const userDeleted = await remove(deleteUserByIdQuery(req.params.userId))
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.DELETE, userDeleted))
 }
 
-export function deleteAllUsers(req, res) {
-    return res.status(200).json({response: getResponse(true), result: user.deleteAllUsers()})
+export async function deleteAllUsers(req, res) {
+    const usersDeleted = await remove(deleteAllUsersQuery())
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.DELETE, usersDeleted))
 }
 
-export function deleteRelationByIds(req, res) {
-    if (!helpers.isUserExists(user.getUsers(), req.params.userId)) {
-        return res.status(400).json({response: getResponse(false, "delete relation of the",
-            "Element with id " + req.params.userId + " does not exist", "user")})
+export async function deleteRelationByIds(req, res) {
+    const user = await oneOrNone(getUserByIdQuery(req.params.userId))
+    if (!user) {
+        return res.status(400).json(OPERATION_TYPES.DELETE, CATALOG.COLUMNS.USER_ID, ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+            [CATALOG.COLUMNS.USER_ID]: req.params.userId
+        })
     }
 
-    if (!catalogHelpers.isRelationExists(catalog.getCatalog(), req.params.userId, req.params.productId)) {
-        return res.status(400).json({response: getResponse(false, "delete relation of the",
-            "This element does not exist", "relation")})
+    const relationDeleted = await remove(deleteRelationByIdsQuery(req.params.userId, req.params.productId))
+    if (!relationDeleted) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.DELETE,
+            [CATALOG.COLUMNS.USER_ID, CATALOG.COLUMNS.PRODUCT_ID], ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+                [CATALOG.COLUMNS.USER_ID]: req.params.userId,
+                [CATALOG.COLUMNS.PRODUCT_ID]: req.params.productId
+            }))
     }
 
-    return res.status(200).json({response: getResponse(true),
-        result: catalog.deleteRelation(req.params.userId, req.params.productId)})
-
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.DELETE, relationDeleted))
 }
 
-export function deleteUsersRelations(req, res) {
-    if (!helpers.isUserExists(user.getUsers(), req.params.userId)) {
-        return res.status(400).json({response: getResponse(false, "delete relation of the",
-            "Element with id " + req.params.userId + " does not exist", "user")})
+export async function deleteUsersRelations(req, res) {
+    const user = await oneOrNone(getUserByIdQuery(req.params.userId))
+    if (!user) {
+        return res.status(400).json(OPERATION_TYPES.DELETE, CATALOG.COLUMNS.USER_ID, ERRORS_DESCRIPTIONS.NOT_EXISTS, {
+            [CATALOG.COLUMNS.USER_ID]: req.params.userId
+        })
     }
-    let deleted = []
-    catalog.getUserProducts(user.getUserById(req.params.userId)).forEach((item) =>
-        deleted.push(catalog.deleteRelation(req.params.userId, item)))
-    return res.status(200).json({response: getResponse(true),
-        result: deleted})
+
+    const relationsDeleted = await remove(deleteUsersProductsQuery(req.params.userId))
+
+    return res.status(200).json(responseHelpers.getSuccessResponse(OPERATION_TYPES.DELETE, relationsDeleted))
 }
-
-
-
-

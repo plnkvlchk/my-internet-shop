@@ -1,21 +1,21 @@
-//TODO: jsdoc
-//TODO: eslint
-//TODO: comments
-// export default function User(name = "default name", login, id) {
-//
-//     this.name = name
-//     this.login = login
-//     this.id = (id || (new Date().getTime() + Math.random())).toString()
-//
-// }
+import { USERS } from '../../constants'
+import { isUuidValueCorrect } from '../../helpers/catalog'
 
 export default function User(user) {
-    this.name = user.name || 'default name' //TODO: throw exception if name not passed
-    this.login = user.login //TODO: check login
-    this.id = user.id || (new Date().getTime() + Math.random()).toString() //TODO: check pattern of id
+    if (!user.name) {
+        throw new ReferenceError(USERS.COLUMNS.NAME)
+    }
+    if (!user.login) {
+        throw new ReferenceError(USERS.COLUMNS.LOGIN)
+    }
+    if (user.id && !(isUuidValueCorrect(user.id))) {
+        throw new TypeError(USERS.COLUMNS.ID)
+    }
+
+    this.name = user.name
+    this.login = user.login
+
+    if (user.id) {
+        this.id = user.id.toString()
+    }
 }
-
-
-
-
-
