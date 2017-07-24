@@ -3,7 +3,7 @@ import bodyParser from 'body-parser'
 import api from './api'
 //import cors from 'cors'
 
-const app = express()
+export const app = express()
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
 //app.use(cors())

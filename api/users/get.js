@@ -16,6 +16,7 @@ import {
     USERS,
     CATALOG
 } from '../../constants'
+import { isUuidValueCorrect } from '../../helpers/catalog'
 
 export async function getAll(req, res) {
     const users = await manyOrNone(getAllUsersQuery())
@@ -23,6 +24,10 @@ export async function getAll(req, res) {
 }
 
 export async function getUserById(req, res) {
+    if (isUuidValueCorrect(req.params.userId)) {
+        return res.status(400).json('id is not valid')
+    }
+
     const user = await oneOrNone(getUserByIdQuery(req.params.userId))
 
     if (user) {
