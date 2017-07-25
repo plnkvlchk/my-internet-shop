@@ -24,8 +24,11 @@ export async function getAll(req, res) {
 }
 
 export async function getUserById(req, res) {
-    if (isUuidValueCorrect(req.params.userId)) {
-        return res.status(400).json('id is not valid')
+    if (!isUuidValueCorrect(req.params.userId)) {
+        return res.status(400).json(responseHelpers.getFailureResponse(OPERATION_TYPES.GET, USERS.COLUMNS.ID,
+            ERRORS_DESCRIPTIONS.WRONG_TYPE, {
+                [USERS.COLUMNS.ID]: req.params.userId
+            }))
     }
 
     const user = await oneOrNone(getUserByIdQuery(req.params.userId))
