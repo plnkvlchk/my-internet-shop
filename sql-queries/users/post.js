@@ -25,3 +25,11 @@ export function addUserQuery(values) {
             .toString()
     }
 }
+
+export function addUsersQuery(values) {
+    return squelPostgres.insert()
+        .into(USERS.NAME)
+        .setFieldsRows(values)
+        .returning('*')
+        .toString()
+}

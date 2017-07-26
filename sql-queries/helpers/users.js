@@ -36,3 +36,10 @@ export function getUsersIdsQuery(ids) {
         }))
         .toString()
 }
+
+export function getAllUsersIdsQuery() {
+    return squel.select()
+        .from(USERS.NAME)
+        .field(USERS.COLUMNS.ID)
+        .toString()
+}

@@ -11,3 +11,10 @@ export function getProductsIdsQuery(ids) {
         }))
         .toString()
 }
+
+export function getAllProductsIdsQuery() {
+    return squel.select()
+        .from(PRODUCTS.NAME)
+        .field(PRODUCTS.COLUMNS.ID)
+        .toString()
+}

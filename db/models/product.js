@@ -1,5 +1,5 @@
 import { PRODUCTS } from '../../constants'
-import { isUuidValueCorrect } from '../../helpers/catalog'
+import { isValidUUID } from '../../helpers/catalog'
 
 export default function Product(product) {
     if (!product.name) {
@@ -8,7 +8,7 @@ export default function Product(product) {
     if (!product.price) {
         throw new ReferenceError(PRODUCTS.COLUMNS.PRICE)
     }
-    if (product.id && !(isUuidValueCorrect(product.id))) {
+    if (product.id && !(isValidUUID(product.id))) {
         throw new TypeError(PRODUCTS.COLUMNS.ID)
     }
 

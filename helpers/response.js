@@ -9,7 +9,7 @@ export function getSuccessResponse(operation, data) {
 export function getFailureResponse(operation, propertyInvalid, errorName, data) {
     return {
         success: false,
-        message: `Cannot ${operation} element`,
+        message: `Cannot ${operation} element.`,
         error: `${propertyInvalid} ${errorName}.`,
         data: data
     }

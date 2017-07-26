@@ -6,8 +6,8 @@ const squelPostgres = squel.useFlavour('postgres')
 export function addUsersProductsQuery(userId, productsIds) {
     let values = []
     productsIds.forEach((item) => values.push( {
-        user_id: userId,
-        product_id: item
+        [CATALOG.COLUMNS.USER_ID]: userId,
+        [CATALOG.COLUMNS.PRODUCT_ID]: item
     }))
 
     return squelPostgres.insert()
@@ -20,8 +20,8 @@ export function addUsersProductsQuery(userId, productsIds) {
 export function addProductsUsersQuery(productId, usersIds) {
     let values = []
     usersIds.forEach((item) => values.push( {
-        product_id: productId,
-        user_id: item
+        [CATALOG.COLUMNS.PRODUCT_ID]: productId,
+        [CATALOG.COLUMNS.USER_ID]: item
     }))
 
     return squelPostgres.insert()
