@@ -25,3 +25,11 @@ export function addProductQuery(values) {
             .toString()
     }
 }
+
+export function addProductsQuery(values) {
+    return squelPostgres.insert()
+        .into(PRODUCTS.NAME)
+        .setFieldsRows(values)
+        .returning('*')
+        .toString()
+}

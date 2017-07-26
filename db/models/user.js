@@ -1,5 +1,5 @@
 import { USERS } from '../../constants'
-import { isUuidValueCorrect } from '../../helpers/catalog'
+import { isValidUUID } from '../../helpers/catalog'
 
 export default function User(user) {
     if (!user.name) {
@@ -8,7 +8,7 @@ export default function User(user) {
     if (!user.login) {
         throw new ReferenceError(USERS.COLUMNS.LOGIN)
     }
-    if (user.id && !(isUuidValueCorrect(user.id))) {
+    if (user.id && !(isValidUUID(user.id))) {
         throw new TypeError(USERS.COLUMNS.ID)
     }
 
