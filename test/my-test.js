@@ -16,7 +16,6 @@ import {
     manyOrNone
 } from '../db'
 import {
-    addUserQuery,
     deleteUserByIdQuery,
     getUserByIdQuery,
     getAllUsersQuery,
@@ -34,7 +33,7 @@ import {
 } from '../sql-queries'
 import { getSuccessResponse, getFailureResponse } from '../helpers/response'
 import { OPERATION_TYPES, ERRORS_DESCRIPTIONS } from '../api/constants'
-import { USERS, CATALOG, PRODUCTS } from '../constants'
+import { USERS, CATALOG } from '../constants'
 import { ROUTES } from '../api/constants/routes'
 import { isValidUUID } from '../helpers/catalog'
 import _ from 'lodash'
